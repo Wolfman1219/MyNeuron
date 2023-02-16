@@ -46,15 +46,14 @@ class Neural(Activations):
                 self.deltas = cross_entropy_loss_derivative(y, activations[-1])
             
             for i in range(len(activations)-2, -1, -1):
+                self.weights[i] = self.weights[i] - learning_rate * activations[i].T.dot(self.deltas)
+                self.biases[i] = self.biases[i] - learning_rate * np.sum(self.deltas, axis=0, keepdims=True)
                 if self.layers[i]['activation'] == 'relu':
                     self.deltas = self.deltas.dot(self.weights[i].T) * self.ReLU_derivative(activations[i])
                 elif self.layers[i]['activation'] == 'sigmoid':
                     self.deltas = self.deltas.dot(self.weights[i].T) * self.sigmoid_derivative(activations[i])
                 elif self.layers[i]['activation'] == 'softmax':
                     self.deltas = self.deltas.dot(self.weights[i].T) * self.softmax_derivative(activations[i])
-                
-                self.weights[i] = self.weights[i] - learning_rate * activations[i].T.dot(self.deltas)
-                self.biases[i] = self.biases[i-1] - learning_rate * np.sum(self.deltas, axis=0, keepdims=True)
         print(self.weights)
             
     def save_model(self, model_path):
