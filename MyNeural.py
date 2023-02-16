@@ -26,26 +26,35 @@ class Neural(Activations):
     
     def fit(self, X, y, epochs=1000, learning_rate=0.01):
         self.random_params()
-        
+
         for epoch in range(epochs):
-            #forward
+            # forward
             activations = [X]
-            
+
             for i in range(len(self.layers)-1):
-                activations.append(self.activator(sample=(np.dot(activations[-1], self.weights[i]) + self.biases[i]), activator_name=self.layers[i]['activation']) )
+                if self.layers[i]['activation'] == 'ReLU':
+                    activations.append(self.ReLU(np.dot(activations[-1], self.weights[i])+self.biases[i]))
+                elif self.layers[i]['activation'] == 'sigmoid':
+                    activations.append(self.sigmoid(np.dot(activations[-1], self.weights[i])+self.biases[i]))
+                elif self.layers[i]['activation'] == 'softmax':
+                    activations.append(self.softmax(np.dot(activations[-1], self.weights[i])+self.biases[i]))
             
-            # birinchi error
-            output = activations[-1]
-            error = MSE_loss_derivative(y, output)
-            deltas = error * self.activator(sample = output, activator_name=self.layers[-1]['activation'], deriative=True)
+            #backward
+            if self.loss == 'MSE':
+                self.deltas = MSE_loss_derivative(y, activations[-1])       
+            elif self.loss == 'cross-entropy':
+                self.deltas = cross_entropy_loss_derivative(y, activations[-1])
             
-            # Backward 
-            for i in range(len(activations)-2, -1, -1):
-                grad_w = np.dot(activations[i].T, deltas)
-                grad_b = np.sum(deltas, axis=0, keepdims=True)
-                self.weights[i] -= learning_rate * grad_w
-                self.biases[i] -= learning_rate * grad_b
-                deltas = np.dot(deltas, self.weights[i].T) * self.activator(sample=(activations[i]), activator_name=self.layers[i]['activation'], deriative=True)
+            for i in range(len(activations)-1, 0, -1):
+                if self.layers[i-1]['activation'] == 'ReLU':
+                    self.deltas = self.deltas.dot(self.weights[i-1].T) * self.ReLU_derivative(activations[i-1])
+                elif self.layers[i-1]['activation'] == 'sigmoid':
+                    self.deltas = self.deltas.dot(self.weights[i-1].T) * self.sigmoid_derivative(activations[i-1])
+                elif self.layers[i-1]['activation'] == 'softmax':
+                    self.deltas = self.deltas.dot(self.weights[i-1].T) * self.softmax_derivative(activations[i-1])
+                
+                self.weights[i-1] = self.weights[i-1] - learning_rate * activations[i-1].T.dot(self.deltas)
+                self.biases[i-1] = self.biases[i-1] - learning_rate * np.sum(self.deltas, axis=0, keepdims=True)
             
             
     def save_model(self, model_path):
@@ -67,3 +76,6 @@ class Neural(Activations):
         model.bias = [np.array(b) for b in model_data['bias']]
         model.loss = model_data['loss']
         return model
+
+def cross_entropy_loss_derivative(y_true, y_pred):
+    return y_pred - y_true

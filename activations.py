@@ -18,10 +18,10 @@ class Activations:
         elif activator_name == "softmax":
             return self.softmax(sample)
 
-    def ReLU(x):
+    def ReLU(self,x):
         return np.maximum(0, x)
 
-    def ReLU_derivative(x):
+    def ReLU_derivative(self,x):
         return np.where(x > 0, 1, 0)
 
     def sigmoid(self, x):
