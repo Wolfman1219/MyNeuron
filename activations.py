@@ -2,21 +2,21 @@
 import numpy as np
 
 class Activations:
-    # def activator(self, activator_name = "relu", sample = None, deriative = False):
-    #     assert sample is not None
-    #     if deriative:
-    #         if activator_name == "relu":
-    #             return self.ReLU_deriative(sample)
-    #         elif activator_name == "sigmoid":
-    #             return self.sigmoid_deriative(sample)
-    #         elif activator_name == "softmax":
-    #             return self.softmax_derivative(sample)
-    #     if activator_name == "relu":
-    #         return self.ReLU(sample)
-    #     elif activator_name == "sigmoid":
-    #         return self.sigmoid(sample)
-    #     elif activator_name == "softmax":
-    #         return self.softmax(sample)
+    def activator(self, activator_name = "relu", sample = None, deriative = False):
+        assert sample is not None
+        if deriative:
+            if activator_name == "relu":
+                return self.ReLU_derivative(sample)
+            elif activator_name == "sigmoid":
+                return self.sigmoid_derivative(sample)
+            elif activator_name == "softmax":
+                return self.softmax_derivative(sample)
+        if activator_name == "relu":
+            return self.ReLU(sample)
+        elif activator_name == "sigmoid":
+            return self.sigmoid(sample)
+        elif activator_name == "softmax":
+            return self.softmax(sample)
 
     def ReLU(self,x):
         return np.maximum(0, x)
@@ -27,7 +27,7 @@ class Activations:
     def sigmoid(self, x):
         return 1 / (1 + np.exp(-x))
     
-    def sigmoid_deriative(self, x):
+    def sigmoid_derivative(self, x):
         return self.sigmoid(x) * (1 - self.sigmoid(x))
     
     def softmax(self, x):
