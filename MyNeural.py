@@ -29,7 +29,6 @@ class Neural(Activations):
         
         for epoch in range(epochs):
             activations = [X]
-            print(epoch)
             
             for i in range(len(self.layers)-1):
                 activations.append(self.activator(sample = np.dot(activations[-1], self.weights[i]) + self.biases[i], activator_name=self.layers[i]['activation']))
@@ -40,19 +39,20 @@ class Neural(Activations):
             deltas = error * self.ReLU_derivative(output)
             
             # Backpropagate errors
-            for i in range(len(activations)-2, -1, -1):
-                if self.layers[i]['activation'] == 'relu':
-                    deltas = deltas.dot(self.weights[i].T) * self.ReLU_derivative(activations[i])
-                elif self.layers[i]['activation'] == 'sigmoid':
-                    deltas = deltas.dot(self.weights[i].T) * self.sigmoid_derivative(activations[i])
-                elif self.layers[i]['activation'] == 'softmax':
-                    deltas = deltas.dot(self.weights[i].T) * self.softmax_derivative(activations[i])
+            for i in range(len(activations)-1, 0, -1):
+                if self.layers[i-1]['activation'] == 'ReLU':
+                    deltas = deltas.dot(self.weights[i-1].T) * self.ReLU_derivative(activations[i-1])
+                elif self.layers[i-1]['activation'] == 'sigmoid':
+                    deltas = deltas.dot(self.weights[i-1].T) * self.sigmoid_derivative(activations[i-1])
+                elif self.layers[i-1]['activation'] == 'softmax':
+                    deltas = deltas.dot(self.weights[i-1].T) * self.softmax_derivative(activations[i-1])
                 
-                print(deltas.shape)
-                print(activations[i].shape)
-                self.weights[i] = self.weights[i] - learning_rate * activations[i].T.dot(deltas)
-                self.biases[i] = self.biases[i] - learning_rate * np.sum(deltas, axis=0, keepdims=True)
-        print(self.weights)
+                self.weights[i-1] = self.weights[i-1] - learning_rate * activations[i-1].T.dot(deltas)
+                self.biases[i-1] = self.biases[i-1] - learning_rate * np.sum(deltas, axis=0, keepdims=True)
+            
+            
+            # keyingi epoch uchun activationni tozalash
+            # activations = []
             
     def save_model(self, model_path):
         model_data = {}
