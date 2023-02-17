@@ -2,9 +2,9 @@
 import numpy as np
 
 class Activations:
-    def activator(self, activator_name = "relu", sample = None, deriative = False):
+    def activator(self, activator_name = "relu", sample = None, derivative = False):
         assert sample is not None
-        if deriative:
+        if derivative:
             if activator_name == "relu":
                 return self.ReLU_derivative(sample)
             elif activator_name == "sigmoid":
