@@ -15,6 +15,7 @@ class Neural(Activations):
         self.biases = []
         self.loss = 'MSE'
         self.layers = []
+        self.h = []
     
     def add(self, neurons, activation):
         self.layers.append({'neurons': neurons, 'activation': activation})
@@ -30,13 +31,14 @@ class Neural(Activations):
         for epoch in range(epochs):
             activations = [X]
             
-            for i in range(len(self.layers)-1):
-                activations.append(self.activator(sample = np.dot(activations[-1], self.weights[i]) + self.biases[i], activator_name=self.layers[i]['activation']))
-            
+            for i in range(1, len(self.layers)):
+                activations.append(self.activator(sample = np.dot(activations[-1], self.weights[i-1]) + self.biases[i-1], activator_name=self.layers[i]['activation']))
+             
             # Calculate deltas
             output = activations[-1]
-            error = MSE_loss_derivative(y, output)
-            deltas = error * self.ReLU_derivative(output)
+            deltas = MSE_loss_derivative(y, output)
+            # deltas = error * self.ReLU_derivative(output)
+            # print(output)
             # Backpropagate errors
             for i in range(len(activations)-1, 0, -1):
                 self.weights[i-1] = self.weights[i-1] - learning_rate * activations[i-1].T.dot(deltas)
@@ -49,11 +51,14 @@ class Neural(Activations):
                 #     deltas = deltas.dot(self.weights[i-1].T) * self.softmax_derivative(activations[i-1])
                 # elif self.layers[i-1]['activation'] == 'linear':
                 #     deltas = deltas.dot(self.weights[i-1].T) * self.linear(sample=activations[i-1], deriative=True)
-        print(self.weights)
-        print(self.biases)
             # keyingi epoch uchun activationni tozalash
             # activations = []
-            
+    def predict(self,X):
+        self.h = [X]
+        for i in range(1, len(self.layers)):
+                self.h.append(self.activator(sample = np.dot(self.h[-1], self.weights[i-1]) + self.biases[i-1], activator_name=self.layers[i]['activation']))
+        return self.h[-1]
+
     def save_model(self, model_path):
         model_data = {}
         model_data['layers'] = self.layers
