@@ -18,23 +18,36 @@ class Activations:
         elif activator_name == "softmax":
             return self.softmax(sample)
 
-    def ReLU(self,x):
-        return np.maximum(0, x)
+    def ReLU(self,x, derivative = False):
+        if not derivative:
+            return np.maximum(0, x)
+        return np.where(x > 0, 1, 0)
 
     def ReLU_derivative(self,x):
         return np.where(x > 0, 1, 0)
 
-    def sigmoid(self, x):
+    def sigmoid(self, x, derivative):
+        if derivative:
+            return self.sigmoid(x) * (1 - self.sigmoid(x))
         return 1 / (1 + np.exp(-x))
     
     def sigmoid_derivative(self, x):
         return self.sigmoid(x) * (1 - self.sigmoid(x))
     
-    def softmax(self, x):
+    def softmax(self, x, derivative):
+        if derivative:
+            p = self.softmax(x)
+            return p * (1 - p)
         e_x = np.exp(x - np.max(x, axis=-1, keepdims=True))
         return e_x / np.sum(e_x, axis=-1, keepdims=True)
     
     def softmax_derivative(self, x):
         p = self.softmax(x)
         return p * (1 - p)
+    
+    def linear(self, sample, deriative=False):
+        if deriative:
+            return 1
+        else:
+            return sample
     

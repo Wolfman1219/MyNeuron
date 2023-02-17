@@ -37,20 +37,20 @@ class Neural(Activations):
             output = activations[-1]
             error = MSE_loss_derivative(y, output)
             deltas = error * self.ReLU_derivative(output)
-            
             # Backpropagate errors
             for i in range(len(activations)-1, 0, -1):
-                if self.layers[i-1]['activation'] == 'ReLU':
-                    deltas = deltas.dot(self.weights[i-1].T) * self.ReLU_derivative(activations[i-1])
+                self.weights[i-1] = self.weights[i-1] - learning_rate * activations[i-1].T.dot(deltas)
+                self.biases[i-1] = self.biases[i-1] - learning_rate * np.sum(deltas, axis=0, keepdims=True)
+                if self.layers[i-1]['activation'] == 'relu':
+                    deltas = deltas.dot(self.weights[i-1].T) * self.ReLU(derivative = True, x = activations[i-1])
                 elif self.layers[i-1]['activation'] == 'sigmoid':
                     deltas = deltas.dot(self.weights[i-1].T) * self.sigmoid_derivative(activations[i-1])
                 elif self.layers[i-1]['activation'] == 'softmax':
                     deltas = deltas.dot(self.weights[i-1].T) * self.softmax_derivative(activations[i-1])
-                
-                self.weights[i-1] = self.weights[i-1] - learning_rate * activations[i-1].T.dot(deltas)
-                self.biases[i-1] = self.biases[i-1] - learning_rate * np.sum(deltas, axis=0, keepdims=True)
-            
-            
+                elif self.layers[i-1]['activation'] == 'linear':
+                    deltas = deltas.dot(self.weights[i-1].T) * self.linear(sample=activations[i-1], deriative=True)
+        print(self.weights)
+        print(self.biases)
             # keyingi epoch uchun activationni tozalash
             # activations = []
             
