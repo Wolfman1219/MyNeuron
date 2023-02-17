@@ -48,8 +48,10 @@ class Neural(Activations):
                 elif self.layers[i]['activation'] == 'softmax':
                     deltas = deltas.dot(self.weights[i].T) * self.softmax_derivative(activations[i])
                 
+                print(deltas.shape)
+                print(activations[i].shape)
                 self.weights[i] = self.weights[i] - learning_rate * activations[i].T.dot(deltas)
-                self.biases[i] = self.biases[i-1] - learning_rate * np.sum(deltas, axis=0, keepdims=True)
+                self.biases[i] = self.biases[i] - learning_rate * np.sum(deltas, axis=0, keepdims=True)
         print(self.weights)
             
     def save_model(self, model_path):
