@@ -25,34 +25,42 @@ class Neural(Activations):
             self.weights.append(2 * np.random.random((self.layers[i-1]['neurons'], self.layers[i]['neurons'])) - 1)
             self.biases.append(np.zeros((1, self.layers[i]['neurons'])))
     
-    def fit(self, X, y, epochs=1000, learning_rate=0.01):
+    def fit(self, X, y, epochs=1000, learning_rate=0.01, batch_size=32):
         self.random_params()
         
         for epoch in range(epochs):
-            activations = [X]
+            batch_indices = np.random.permutation(len(X))
+            # print(batch_indices)
+            batches_X = np.array_split(X, len(X) // batch_size)
+            batches_y = np.array_split(y[0], len(X) // batch_size)
             
-            for i in range(1, len(self.layers)):
-                activations.append(self.activator(sample = np.dot(activations[-1], self.weights[i-1]) + self.biases[i-1], activator_name=self.layers[i]['activation']))
-            
-            # if epoch ==1:
-            #     for i in activations:
-            #         print(i.shape)
-            # deltas
-            output = activations[-1]
-            deltas = MSE_loss_derivative(y, output)
-            # deltas = error * self.ReLU_derivative(output)
-            # print(output)
-            # Backward
-            for i in range(len(activations)-1, 0, -1):
-                self.weights[i-1] = self.weights[i-1] - learning_rate * activations[i-1].T.dot(deltas)
-                self.biases[i-1] = self.biases[i-1] - learning_rate * np.sum(deltas, axis=0, keepdims=True)
-                deltas = deltas.dot(self.weights[i-1].T) * self.activator(activator_name = self.layers[i]["activation"],derivative = True, sample = activations[i-1])
+            for batch_X, batch_y in zip(batches_X, batches_y):
+                activations = [batch_X]
+                
+                for i in range(1, len(self.layers)):
+                    activations.append(self.activator(sample = np.dot(activations[-1], self.weights[i-1]) + self.biases[i-1], activator_name=self.layers[i]['activation']))
+                
+                output = activations[-1]
+                # print(output.shape)
+                # print(batch_y.shape)
+                # print(batch_X.shape)
+
+                deltas = MSE_loss_derivative(batch_y, output)
+                
+                for i in range(len(activations)-1, 0, -1):
+                    self.weights[i-1] = self.weights[i-1] - learning_rate * activations[i-1].T.dot(deltas)
+                    self.biases[i-1] = self.biases[i-1] - learning_rate * np.sum(deltas, axis=0, keepdims=True)
+                    deltas = deltas.dot(self.weights[i-1].T) * self.activator(activator_name = self.layers[i]["activation"],derivative = True, sample = activations[i-1])
+                    
             if epoch % 100 == 0:
                 time.sleep(0.5)
-                text = f"Epoch: {epoch}  loss: {MSE_loss(output, y)}"
+                loss = np.mean([MSE_loss(self.predict(batch_X), batch_y) for batch_X, batch_y in zip(batches_X, batches_y)])
+                text = f"Epoch: {epoch}  loss: {loss}"
                 print("\r" + " " * len(text) + "\r", end="", flush=True)
                 print(text, end="",flush=True)
+                
         print("\n")
+
                
     def predict(self,X):
         self.h = [X]
