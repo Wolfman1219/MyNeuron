@@ -3,17 +3,36 @@ import json
 from activations import Activations
 import time
 
-def MSE_loss(y_true, y_pred):
-    return np.mean((y_true.T - y_pred) ** 2)
 
-def MSE_loss_derivative(y_true, y_pred):
-    return 2 * (y_pred - y_true.T) / y_true.size
+
+
+class MyLoss():
+
+    def __init__(self) -> None:
+        pass
+    def MSE_loss(y_true = None, y_pred = None, derivative=False):
+        if derivative:
+            return 2 * (y_pred - y_true.T) / y_true.T.size
+        return np.mean((y_true.T - y_pred) ** 2)
+
+
+    def binary_cross_entropy(y_true = None, y_pred = None, derivative=False):
+        epsilon = 1e-10 # small value added to avoid taking log of 0
+        if derivative:
+            derivative = -(y_true.T / (y_pred + epsilon)) + (1 - y_true.T) / (1 - y_pred + epsilon)
+            derivative /= len(y_true.T) # normalize by batch size
+            return derivative
+        loss = -np.mean(y_true.T * np.log(y_pred + epsilon) + (1 - y_true.T) * np.log(1 - y_pred + epsilon))
+        return loss
+
+
+
 
 class Neural(Activations):
-    def __init__(self):
+    def __init__(self, loss = MyLoss.MSE_loss):
         self.weights = []
         self.biases = []
-        self.loss = 'MSE'
+        self.loss = loss
         self.layers = []
         self.h = []
     
@@ -27,7 +46,6 @@ class Neural(Activations):
     
     def fit(self, X, y, epochs=1000, learning_rate=0.01):
         self.random_params()
-        
         for epoch in range(epochs):
             activations = [X]
             
@@ -39,8 +57,9 @@ class Neural(Activations):
             #         print(i.shape)
             # deltas
             output = activations[-1]
-            deltas = MSE_loss_derivative(y, output)
+            deltas = self.loss(y_true=y, y_pred=output, derivative = True)
             # deltas = error * self.ReLU_derivative(output)
+
             # print(output)
             # Backward
             for i in range(len(activations)-1, 0, -1):
@@ -49,7 +68,7 @@ class Neural(Activations):
                 deltas = deltas.dot(self.weights[i-1].T) * self.activator(activator_name = self.layers[i]["activation"],derivative = True, sample = activations[i-1])
             if epoch % 100 == 0:
                 time.sleep(0.5)
-                text = f"Epoch: {epoch}  loss: {MSE_loss(output, y)}"
+                text = f"Epoch: {epoch}  loss: {self.loss(y_pred = output, y_true = y)}"
                 print("\r" + " " * len(text) + "\r", end="", flush=True)
                 print(text, end="",flush=True)
         print("\n")
@@ -65,7 +84,7 @@ class Neural(Activations):
         model_data['layers'] = self.layers
         model_data['weights'] = [w.tolist() for w in self.weights]
         model_data['bias'] = [b.tolist() for b in self.biases]
-        model_data['loss'] = self.loss
+        # model_data['loss'] = self.loss
         with open(model_path, 'w') as outfile:
             json.dump(model_data, outfile)
 
