@@ -46,14 +46,20 @@ class Neural(Activations):
                     self.weights[i-1] = self.weights[i-1] - learning_rate * activations[i-1].T.dot(deltas)
                     self.biases[i-1] = self.biases[i-1] - learning_rate * np.sum(deltas, axis=0, keepdims=True)
                     deltas = deltas.dot(self.weights[i-1].T) * self.activator(activator_name = self.layers[i]["activation"],derivative = True, sample = activations[i-1])
-                
-            if  epoch - interval  == 0:
-                print()
-            # time.sleep(0.5)
-                interval+=interval2
+
+
             text = f"Epoch: {epoch}  loss: {self.loss(y_pred = output, y_true = mini_y)}"
             print("\r" + " " * len(text) + "\r", end="", flush=True)
             print(text, end="",flush=True)
+
+            if  epoch - interval  == 0:
+            # time.sleep(0.5)
+                interval+=interval2
+                print()
+                # evaluation = self.evaluate(X, y)
+                # print(f"\nEvaluation loss:{evaluation[0]} accuracy:{evaluation[1]}")
+
+            
                
     def predict(self,X):
         self.h = [X]
@@ -86,8 +92,10 @@ class Neural(Activations):
         # loss_module = __import__(model_data['loss']['module'], fromlist=[model_data['loss']['name']])
         # loss_class = getattr(loss_module, model_data['loss']['class'])
         # model.loss = getattr(loss_class, model_data['loss']['name'])
-
         return model
-
-def cross_entropy_loss_derivative(y_true, y_pred):
-    return y_pred - y_true
+    
+    def evaluate(self, X, y):
+        y_pred = self.predict(X)
+        loss = self.loss(y_pred, y)
+        accuracy = np.mean(np.argmax(y, axis=1) == np.argmax(y_pred, axis=1))
+        return loss, accuracy
