@@ -45,6 +45,7 @@ class Neural(Activations):
                 for i in range(len(activations)-1, 0, -1):
                     self.weights[i-1] = self.weights[i-1] - learning_rate * activations[i-1].T.dot(deltas)
                     self.biases[i-1] = self.biases[i-1] - learning_rate * np.sum(deltas, axis=0, keepdims=True)
+              
                     deltas = deltas.dot(self.weights[i-1].T) * self.activator(activator_name = self.layers[i]["activation"],derivative = True, sample = activations[i-1])
 
 
@@ -57,7 +58,7 @@ class Neural(Activations):
                 interval+=interval2
                 print()
                 y_pred = self.predict(X)
-                accuracy = np.mean(np.argmax(y) == np.argmax(y_pred))
+                accuracy = np.mean(np.argmax(y, axis=1) == np.argmax(y_pred, axis=1))
 
                 print("\n Accuracy:",accuracy)
                 # evaluation = self.evaluate(X, y)
