@@ -30,7 +30,7 @@ class Neural(Activations):
         interval = epochs // 10
         interval2 = interval
         for epoch in range(epochs):
-            s = 0
+       
             for mini_x, mini_y in zip(batch_x, batch_y):
 
                 activations = [mini_x]
