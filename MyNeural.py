@@ -2,25 +2,9 @@ import numpy as np
 import json
 from activations import Activations
 import time
+import MyLoss
 
 
-
-
-class MyLoss():
-    def MSE_loss(y_true = None, y_pred = None, derivative=False):
-        if derivative:
-            return 2 * (y_pred - y_true.T) / y_true.T.size
-        return np.mean((y_true.T - y_pred) ** 2)
-
-
-    def binary_cross_entropy(y_true = None, y_pred = None, derivative=False):
-        epsilon = 1e-10 # small value added to avoid taking log of 0
-        if derivative:
-            derivative = -(y_true.T / (y_pred + epsilon)) + (1 - y_true.T) / (1 - y_pred + epsilon)
-            derivative /= len(y_true.T) # normalize by batch size
-            return derivative
-        loss = -np.mean(y_true.T * np.log(y_pred + epsilon) + (1 - y_true.T) * np.log(1 - y_pred + epsilon))
-        return loss
 
 
 
@@ -85,7 +69,7 @@ class Neural(Activations):
         model_data['loss'] = {
             'name': self.loss.__name__,
             'module': self.loss.__module__,
-            'class': self.loss.__class__.__name__
+            # 'class': self.loss.__class__.__name__
         }
         print(self.loss.__class__)
         with open(model_path, 'w') as outfile:
@@ -98,10 +82,10 @@ class Neural(Activations):
         model.layers = model_data['layers']
         model.weights = [np.array(w) for w in model_data['weights']]
         model.bias = [np.array(b) for b in model_data['bias']]
-        # model.loss =getattr(__import__(model_data['loss']['module'], fromlist=[model_data['loss']['name']]), model_data['loss']['name'])
-        loss_module = __import__(model_data['loss']['module'], fromlist=[model_data['loss']['name']])
-        loss_class = getattr(loss_module, model_data['loss']['class'])
-        model.loss = getattr(loss_class, model_data['loss']['name'])
+        model.loss =getattr(__import__(model_data['loss']['module'], fromlist=[model_data['loss']['name']]), model_data['loss']['name'])
+        # loss_module = __import__(model_data['loss']['module'], fromlist=[model_data['loss']['name']])
+        # loss_class = getattr(loss_module, model_data['loss']['class'])
+        # model.loss = getattr(loss_class, model_data['loss']['name'])
 
         return model
 
