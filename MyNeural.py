@@ -56,6 +56,10 @@ class Neural(Activations):
             # time.sleep(0.5)
                 interval+=interval2
                 print()
+                y_pred = self.predict(X)
+                accuracy = np.mean(np.argmax(y) == np.argmax(y_pred))
+
+                print("\n Accuracy:",accuracy)
                 # evaluation = self.evaluate(X, y)
                 # print(f"\nEvaluation loss:{evaluation[0]} accuracy:{evaluation[1]}")
 
