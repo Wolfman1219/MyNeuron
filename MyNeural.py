@@ -5,10 +5,6 @@ import time
 import MyLoss
 
 
-
-
-
-
 class Neural(Activations):
     def __init__(self, loss = MyLoss.MSE_loss):
         self.weights = []
@@ -25,34 +21,39 @@ class Neural(Activations):
             self.weights.append(2 * np.random.random((self.layers[i-1]['neurons'], self.layers[i]['neurons'])) - 1)
             self.biases.append(np.zeros((1, self.layers[i]['neurons'])))
     
-    def fit(self, X, y, epochs=1000, learning_rate=0.01):
+    
+    def fit(self, X, y, epochs=1000, batch_size = 32, learning_rate=0.01):
         self.random_params()
-        for epoch in range(epochs):
-            activations = [X]
-            
-            for i in range(1, len(self.layers)):
-                activations.append(self.activator(sample = np.dot(activations[-1], self.weights[i-1]) + self.biases[i-1], activator_name=self.layers[i]['activation']))
-            
-            # if epoch ==1:
-            #     for i in activations:
-            #         print(i.shape)
-            # deltas
-            output = activations[-1]
-            deltas = self.loss(y_true=y, y_pred=output, derivative = True)
-            # deltas = error * self.ReLU_derivative(output)
+        batch_x = np.array_split(X, len(X)//batch_size)
+        batch_y = np.array_split(y, len(X)//batch_size, axis=1)
 
-            # print(output)
-            # Backward
-            for i in range(len(activations)-1, 0, -1):
-                self.weights[i-1] = self.weights[i-1] - learning_rate * activations[i-1].T.dot(deltas)
-                self.biases[i-1] = self.biases[i-1] - learning_rate * np.sum(deltas, axis=0, keepdims=True)
-                deltas = deltas.dot(self.weights[i-1].T) * self.activator(activator_name = self.layers[i]["activation"],derivative = True, sample = activations[i-1])
-            if epoch % 100 == 0:
-                time.sleep(0.5)
-                text = f"Epoch: {epoch}  loss: {self.loss(y_pred = output, y_true = y)}"
-                print("\r" + " " * len(text) + "\r", end="", flush=True)
-                print(text, end="",flush=True)
-        print("\n")
+        interval = epochs // 10
+        interval2 = interval
+        for epoch in range(epochs):
+            s = 0
+            for mini_x, mini_y in zip(batch_x, batch_y):
+
+                activations = [mini_x]
+                
+                for i in range(1, len(self.layers)):
+                    activations.append(self.activator(sample = np.dot(activations[-1], self.weights[i-1]) + self.biases[i-1], activator_name=self.layers[i]['activation']))
+                
+                output = activations[-1]
+                deltas = self.loss(y_true=mini_y, y_pred=output, derivative = True)
+                
+                # Backward
+                for i in range(len(activations)-1, 0, -1):
+                    self.weights[i-1] = self.weights[i-1] - learning_rate * activations[i-1].T.dot(deltas)
+                    self.biases[i-1] = self.biases[i-1] - learning_rate * np.sum(deltas, axis=0, keepdims=True)
+                    deltas = deltas.dot(self.weights[i-1].T) * self.activator(activator_name = self.layers[i]["activation"],derivative = True, sample = activations[i-1])
+                
+            if  epoch - interval  == 0:
+                print()
+            # time.sleep(0.5)
+                interval+=interval2
+            text = f"Epoch: {epoch}  loss: {self.loss(y_pred = output, y_true = mini_y)}"
+            print("\r" + " " * len(text) + "\r", end="", flush=True)
+            print(text, end="",flush=True)
                
     def predict(self,X):
         self.h = [X]
@@ -68,10 +69,9 @@ class Neural(Activations):
         # model_data['loss'] = self.loss
         model_data['loss'] = {
             'name': self.loss.__name__,
-            'module': self.loss.__module__,
-            # 'class': self.loss.__class__.__name__
+            'module': self.loss.__module__
+
         }
-        print(self.loss.__class__)
         with open(model_path, 'w') as outfile:
             json.dump(model_data, outfile)
     @classmethod
