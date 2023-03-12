@@ -1,7 +1,6 @@
 import numpy as np
 import json
 from activations import Activations
-import time
 import MyLoss
 
 
@@ -35,6 +34,7 @@ class Neural(Activations):
 
                 activations = [mini_x]
                 
+                #Forward
                 for i in range(1, len(self.layers)):
                     activations.append(self.activator(sample = np.dot(activations[-1], self.weights[i-1]) + self.biases[i-1], activator_name=self.layers[i]['activation']))
                 
@@ -54,7 +54,6 @@ class Neural(Activations):
             print(text, end="",flush=True)
 
             if  epoch - interval  == 0:
-            # time.sleep(0.5)
                 interval+=interval2
                 print()
                 y_pred = self.predict(X)
