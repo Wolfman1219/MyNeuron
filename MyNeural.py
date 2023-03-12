@@ -44,8 +44,7 @@ class Neural(Activations):
                 # Backward
                 for i in range(len(activations)-1, 0, -1):
                     self.weights[i-1] = self.weights[i-1] - learning_rate * activations[i-1].T.dot(deltas)
-                    self.biases[i-1] = self.biases[i-1] - learning_rate * np.sum(deltas, axis=0, keepdims=True)
-              
+                    self.biases[i-1] = self.biases[i-1] - learning_rate * np.sum(deltas, axis=0, keepdims=True)              
                     deltas = deltas.dot(self.weights[i-1].T) * self.activator(activator_name = self.layers[i]["activation"],derivative = True, sample = activations[i-1])
 
 
@@ -93,13 +92,10 @@ class Neural(Activations):
         model.weights = [np.array(w) for w in model_data['weights']]
         model.bias = [np.array(b) for b in model_data['bias']]
         model.loss =getattr(__import__(model_data['loss']['module'], fromlist=[model_data['loss']['name']]), model_data['loss']['name'])
-        # loss_module = __import__(model_data['loss']['module'], fromlist=[model_data['loss']['name']])
-        # loss_class = getattr(loss_module, model_data['loss']['class'])
-        # model.loss = getattr(loss_class, model_data['loss']['name'])
         return model
     
-    def evaluate(self, X, y):
-        y_pred = self.predict(X)
-        loss = self.loss(y_pred, y)
-        accuracy = np.mean(np.argmax(y, axis=1) == np.argmax(y_pred, axis=1))
-        return loss, accuracy
+    # def evaluate(self, X, y):
+    #     y_pred = self.predict(X)
+    #     loss = self.loss(y_pred, y)
+    #     accuracy = np.mean(np.argmax(y, axis=1) == np.argmax(y_pred, axis=1))
+    #     return loss, accuracy
