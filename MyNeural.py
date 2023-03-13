@@ -59,8 +59,6 @@ class Neural(Activations):
                 accuracy = np.mean(np.argmax(y, axis=1) == np.argmax(y_pred, axis=1))
 
                 print("\n Accuracy:",accuracy)
-                # evaluation = self.evaluate(X, y)
-                # print(f"\nEvaluation loss:{evaluation[0]} accuracy:{evaluation[1]}")
 
             
                
@@ -75,7 +73,6 @@ class Neural(Activations):
         model_data['layers'] = self.layers
         model_data['weights'] = [w.tolist() for w in self.weights]
         model_data['bias'] = [b.tolist() for b in self.biases]
-        # model_data['loss'] = self.loss
         model_data['loss'] = {
             'name': self.loss.__name__,
             'module': self.loss.__module__
@@ -93,9 +90,3 @@ class Neural(Activations):
         model.bias = [np.array(b) for b in model_data['bias']]
         model.loss =getattr(__import__(model_data['loss']['module'], fromlist=[model_data['loss']['name']]), model_data['loss']['name'])
         return model
-    
-    # def evaluate(self, X, y):
-    #     y_pred = self.predict(X)
-    #     loss = self.loss(y_pred, y)
-    #     accuracy = np.mean(np.argmax(y, axis=1) == np.argmax(y_pred, axis=1))
-    #     return loss, accuracy
